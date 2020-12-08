@@ -38,6 +38,20 @@ contract Mortal is Owned {
 	}
 }
 
+
+interface InterfaceTokenEscrowContract {
+    function name() view external returns (string memory);
+    function symbol() view external returns (string memory);
+    function totalSupply() view external returns (uint256);
+    function tokenBalancesOf(address _requester) view external returns (uint256);
+    function etherBalancesOf(address _requester) view external returns (uint256);
+    function depositTokens(uint256 _tokens) external;
+    function depositEther(uint256 _etherAmount) payable external;
+    function buyTokens(address _seller, address _buyer, uint256 _tokens, uint256 _etherAmount) external;
+    function withdrawTokens() external;
+}
+    
+    
 /** 
  * @title TokenEscrowContract
  * @dev Implements escrow system to serve as middleman between seller and buyer
