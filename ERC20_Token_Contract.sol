@@ -42,13 +42,15 @@ contract TokenContract is ERC20, Mortal {
         _mint(msg.sender, 1000000);
     }
     
-    mapping ( address => uint256 ) private totalBalances;
+    mapping ( address => uint256 ) private tokenBalances;
+    mapping ( address => uint256 ) private etherBalances;
     
-    fallback() external payable {}
-    receive() external payable {}
+    function tokenBalancesOf(address _requester) public view returns (uint256) {
+        return tokenBalances[_requester];
+    }
     
-    function totalBalancesOf(address _requester) public view returns (uint256) {
-        return totalBalances[_requester];
+    function etherBalancesOf(address _requester) public view returns (uint256) {
+        return etherBalances[_requester];
     }
 
     function depositTokens(uint256 _tokens) public {
@@ -58,24 +60,26 @@ contract TokenContract is ERC20, Mortal {
         ERC20.transferFrom(msg.sender, address(this), _tokens);
         
         // add the deposited tokens into existing balance, records how much the sender has put into the smart contract 
-        totalBalances[msg.sender] += _tokens;
+        tokenBalances[msg.sender] += _tokens;
     }
     
-    function returnTokens() public {
-        totalBalances[msg.sender] = 0;
-        ERC20.transfer(msg.sender, totalBalances[msg.sender]);
-    }
-    
-    function buyTokens(address _seller, address _buyer, uint256 _tokens, uint256 _etherAmount) payable public {
+    function depositEther(uint256 _etherAmount) payable public {
         require(msg.value == _etherAmount);
-        totalBalances[_seller] -= _tokens;
-        totalBalances[_buyer] += _tokens;
+        etherBalances[msg.sender] += _etherAmount;
     }
     
-    function withdrawTokens(address _buyer, uint256 _tokens) public {
-        require(totalBalances[_buyer] >= _tokens, "Error: Not enough tokens to withdraw.");
-        ERC20(address(this)).transfer(_buyer, _tokens);
-        totalBalances[_buyer] -= _tokens;
+    function buyTokens(address _seller, address _buyer, uint256 _tokens, uint256 _etherAmount) public {
+        require(etherBalances[_buyer] >= _etherAmount, "Error: Not enough ether balance to buy tokens.");
+        etherBalances[_buyer] -= _etherAmount;
+        etherBalances[_seller] += _etherAmount;
+        
+        tokenBalances[_seller] -= _tokens;
+        tokenBalances[_buyer] += _tokens;
+    }
+    
+    function withdrawTokens() public {
+        tokenBalances[msg.sender] = 0;
+        ERC20.transfer(msg.sender, tokenBalances[msg.sender]);
     }
   
 }
