@@ -3,6 +3,7 @@
 pragma solidity >=0.7.0 <0.8.0;
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v3.3/contracts/token/ERC20/ERC20.sol";
+
 /** 
  * @title Owned
  * @dev Base contract to represent ownership of a contract
@@ -15,6 +16,7 @@ contract Owned {
 	constructor() {
 		owner = msg.sender;
 	}
+	
 	// Access control modifier
 	modifier onlyOwner {
 		require(msg.sender == owner,
@@ -22,6 +24,7 @@ contract Owned {
 		_;
 	}
 }
+
 
 /** 
  * @title Mortal
@@ -35,22 +38,17 @@ contract Mortal is Owned {
 	}
 }
 
-
-contract TokenContract is ERC20, Mortal {
+/** 
+ * @title TokenEscrowContract
+ * @dev Implements escrow system to serve as middleman between seller and buyer
+ */
+contract TokenEscrowContract is ERC20, Mortal {
+    
+    mapping(address => uint256) private tokenBalances;
+    mapping(address => uint256) private etherBalances;
     
     constructor() public ERC20("Token", "TKN") {
         _mint(msg.sender, 1000000);
-    }
-    
-    mapping ( address => uint256 ) private tokenBalances;
-    mapping ( address => uint256 ) private etherBalances;
-    
-    function tokenBalancesOf(address _requester) public view returns (uint256) {
-        return tokenBalances[_requester];
-    }
-    
-    function etherBalancesOf(address _requester) public view returns (uint256) {
-        return etherBalances[_requester];
     }
 
     function depositTokens(uint256 _tokens) public {
@@ -80,6 +78,14 @@ contract TokenContract is ERC20, Mortal {
     function withdrawTokens() public {
         tokenBalances[msg.sender] = 0;
         ERC20.transfer(msg.sender, tokenBalances[msg.sender]);
+    }
+    
+    function tokenBalancesOf(address _requester) public view returns (uint256) {
+        return tokenBalances[_requester];
+    }
+    
+    function etherBalancesOf(address _requester) public view returns (uint256) {
+        return etherBalances[_requester];
     }
   
 }
